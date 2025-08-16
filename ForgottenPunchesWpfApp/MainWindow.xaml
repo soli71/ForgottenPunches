@@ -1,0 +1,148 @@
+﻿<Window x:Class="AttendanceTool.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="محاسبهٔ ساعات - فراموشی ثبت تردد و مرخصی‌ها"
+        Width="1100" Height="780"
+        FlowDirection="RightToLeft"
+        WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="240" />
+            <RowDefinition Height="Auto" />
+
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <DockPanel Grid.Row="0" Margin="10,10,10,6">
+            <Button x:Name="BtnCalc"
+                    Content="محاسبه از متن"
+                    Width="150" Height="36"
+                    Click="BtnCalc_Click"
+                    DockPanel.Dock="Right" Margin="6,0,0,0" />
+            <TextBlock Text="متن گزارش را اینجا بچسبانید و «محاسبه از متن» را بزنید. ردیف‌های «حذف» در نظر گرفته نمی‌شوند."
+                       VerticalAlignment="Center" />
+        </DockPanel>
+
+        <TextBox x:Name="TxtInput"
+                 Grid.Row="1"
+                 Margin="10,0,10,8"
+                 FontFamily="Consolas"
+                 AcceptsReturn="True"
+                 AcceptsTab="True"
+                 VerticalScrollBarVisibility="Auto"
+                 HorizontalScrollBarVisibility="Auto"
+                 TextWrapping="NoWrap" />
+
+        <Border Grid.Row="2" Margin="10,0,10,8" Padding="10" BorderBrush="#DDDDDD" BorderThickness="1" CornerRadius="6">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="خلاصه جمع کل" FontWeight="Bold" Margin="0,0,0,6" />
+                <WrapPanel Margin="0,0,0,4">
+                    <TextBlock Text="مجموع «فراموشی ثبت تردد»: " />
+                    <TextBlock x:Name="LblSumPunch" FontWeight="Bold" />
+                </WrapPanel>
+                <WrapPanel Margin="0,0,0,4">
+                    <TextBlock Text="مجموع «مرخصی ساعتی»: " />
+                    <TextBlock x:Name="LblSumLeaveHr" FontWeight="Bold" />
+                </WrapPanel>
+                <WrapPanel Margin="0,0,0,4">
+                    <TextBlock Text="مجموع «مرخصی استحقاقی»: " />
+                    <TextBlock x:Name="LblSumLeaveDayDays" FontWeight="Bold" />
+                    <TextBlock Text=" روز  —  معادل: " Margin="8,0,0,0" />
+                    <TextBlock x:Name="LblSumLeaveDayHours" FontWeight="Bold" />
+                    <TextBlock Text=" (۱ روز = ۸ ساعت)" Margin="6,0,0,0" />
+                </WrapPanel>
+                <Separator Margin="0,6,0,6" />
+                <WrapPanel>
+                    <TextBlock Text="مجموع کل ساعات (همه): " />
+                    <TextBlock x:Name="LblSumAllHours" FontWeight="Bold" />
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="3" Margin="10,0,10,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="3*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <GroupBox Header="فراموشی ثبت تردد به تفکیک روز (ویرایش/تکمیل جفت‌ها + مجموع روز)"
+                      Grid.Row="0" Margin="0,0,0,8">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl x:Name="PunchDaysList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Expander Margin="0,0,0,6" IsExpanded="False">
+                                    <Expander.Header>
+                                        <DockPanel LastChildFill="False">
+                                            <TextBlock Text="{Binding Date}" FontWeight="Bold" />
+                                            <TextBlock Text="  —  مجموع: " />
+                                            <TextBlock Text="{Binding Total}" FontWeight="Bold" />
+                                            <TextBlock Text="  —  جفت‌ها: " />
+                                            <TextBlock Text="{Binding PairCount}" />
+                                            <TextBlock Text="{Binding Warning}" Foreground="DarkOrange" Margin="8,0,0,0" />
+                                        </DockPanel>
+                                    </Expander.Header>
+
+                                    <StackPanel Margin="0,6,0,0">
+                                        <DataGrid ItemsSource="{Binding Entries}"
+                                                  IsReadOnly="False"
+                                                  AutoGenerateColumns="False"
+                                                  CanUserAddRows="False"
+                                                  HeadersVisibility="Column"
+                                                  SelectionMode="Single"
+                                                  Margin="0,0,0,6"
+                                                  AlternationCount="2">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Binding="{Binding PairNo, Mode=TwoWay}" Header="جفت" Width="70" />
+                                                <DataGridTemplateColumn Header="نوع" Width="120">
+                                                    <DataGridTemplateColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <ComboBox SelectedItem="{Binding Kind, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                      ItemsSource="{Binding KindOptions}"
+                                                                      Width="100" />
+                                                        </DataTemplate>
+                                                    </DataGridTemplateColumn.CellTemplate>
+                                                </DataGridTemplateColumn>
+                                                <DataGridTextColumn Binding="{Binding Time, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Header="ساعت (HH:mm)" Width="*" />
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+
+                                        <WrapPanel>
+                                            <Button Content="افزودن ردیف" Margin="0,0,6,0"
+                                                    Tag="{Binding}" Click="BtnAddRow_Click" />
+                                            <Button Content="حذف ردیف انتخاب‌شده" Margin="0,0,6,0"
+                                                    Tag="{Binding}" Click="BtnDeleteRow_Click" />
+                                            <Button Content="افزودن خروج برای جفت ناقص" Margin="0,0,6,0"
+                                                    Tag="{Binding}" Click="BtnAddMissingExit_Click" />
+                                            <Button Content="ذخیره‌ی تغییرات روز" Background="#FF2E7D32" Foreground="White"
+                                                    Tag="{Binding}" Click="BtnSaveDay_Click" />
+                                        </WrapPanel>
+                                    </StackPanel>
+                                </Expander>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </GroupBox>
+
+            <GroupBox Header="مرخصی‌ها (خلاصه)"
+                      Grid.Row="1">
+                <StackPanel Orientation="Vertical" Margin="8">
+                    <TextBlock>
+                        <Run Text="مرخصی ساعتی: " />
+                        <Run x:Name="LblLeaveHrShort" FontWeight="Bold" />
+                        <Run Text=" (HH:mm)" />
+                    </TextBlock>
+                    <TextBlock Margin="0,4,0,0">
+                        <Run Text="مرخصی استحقاقی: " />
+                        <Run x:Name="LblLeaveDayShortDays" FontWeight="Bold" />
+                        <Run Text=" روز  —  معادل: " />
+                        <Run x:Name="LblLeaveDayShortHours" FontWeight="Bold" />
+                        <Run Text=" (۸ ساعت/روز)" />
+                    </TextBlock>
+                </StackPanel>
+            </GroupBox>
+        </Grid>
+    </Grid>
+</Window>
